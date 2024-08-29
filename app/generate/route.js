@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import OpenAI from "openai";
 
-
+// System prompt for the OpenAI model, describing the task of generating flashcards
 const systemPrompt = `
 You are a flashcard generator. Here are your tasks:
 - Accept a topic and a collection of existing flashcards as input.
@@ -22,14 +22,18 @@ Return in the following JSON format:
   "flashcard": [{
     "front": string,
     "back": string
-  }
-]
+  }]
 }
 `
+
+// POST function to handle the creation of a new flashcard
 export async function POST(request) {
+    // Initialize the OpenAI client
     const openai = OpenAI()
+    // Retrieve the request data as text
     const data = await request.text()
 
+    // Create a completion using the OpenAI API with the system and user messages
     const completion = await openai.chat.completion.create({
         messages: [
             {
@@ -41,10 +45,11 @@ export async function POST(request) {
                 content: data
             }
         ],
-        model: "gpt-4o",
-        response_format: {type: "json_object"}
+        model: "gpt-4o", // Specify the model to use
+        response_format: {type: "json_object"} // Specify the response format
     })
+    // Parse the JSON response to extract the flashcard data
     const flashcard = JSON.parse(completion.choices[0].message.content)
+    // Return the flashcard data as a JSON response
     return NextResponse.json(flashcard.flashcard)
-
 }

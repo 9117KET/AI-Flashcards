@@ -34,10 +34,12 @@ Return the flashcards in a structured format, such as JSON, for easy integration
 }
 `;
 export async function POST(req){
-    const openai = OpenAI()
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY
+    });
     const data = await req.text()
     const completion = await openai.chat.completion.create({
-        model: "gpt-4o",
+        model: "gpt-4",
         messages: [
             {
                 role: "system",
@@ -47,8 +49,7 @@ export async function POST(req){
                 role: "user",
                 content: data
             }
-        ],
-        response_format: { type: "json_object" }
+        ]
     })
     const flashcards = JSON.parse(completion.choices[0].message.content)
     return NextResponse.json(flashcards.flashcards)

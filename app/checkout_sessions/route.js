@@ -14,7 +14,7 @@ export async function POST(req){
         line_items: [
           {
             price_data:{
-                currency: 'euro',
+                currency: 'eur', // Corrected from 'euro' to 'eur'
                 product_data: {
                     name: 'Pro-Subscription',
 

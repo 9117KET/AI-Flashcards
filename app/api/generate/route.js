@@ -14,6 +14,7 @@ you are a flashcard creator.
 - Allow customization of flashcard design by users to enhance learning experience.
 - Implement spaced repetition algorithms to aid in efficient memorization.
 - Ensure all content is up-to-date with current educational standards and facts.
+- Only generate 10 flashcards at a time.
 
 Remember, the quality and relevance of the flashcards are crucial for educational success. and your purpose is to help users learn and succeed.
 
@@ -34,23 +35,34 @@ Return the flashcards in a structured format, such as JSON, for easy integration
 }
 `;
 export async function POST(req){
-    const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY
-    });
-    const data = await req.text()
-    const completion = await openai.chat.completion.create({
-        model: "gpt-4",
-        messages: [
-            {
-                role: "system",
-                content: systemPrompt
-            },
-            {
-                role: "user",
-                content: data
-            }
-        ]
-    })
-    const flashcards = JSON.parse(completion.choices[0].message.content)
-    return NextResponse.json(flashcards.flashcards)
+    try {
+        console.log("API Key:", process.env.OPENAI_API_KEY);
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+        });
+        console.log("OpenAI object:", openai);
+        console.log("Chat API available:", openai.chat);
+        const data = await req.text();
+        const completion = await openai.chat.completion.create({
+            model: "gpt-4",
+            messages: [
+                {
+                    role: "system",
+                    content: systemPrompt
+                },
+                {
+                    role: "user",
+                    content: data
+                }
+            ]
+        });
+        if (!completion.choices || completion.choices.length === 0 || !completion.choices[0].message) {
+            throw new Error("Invalid response structure from OpenAI API");
+        }
+        const flashcards = JSON.parse(completion.choices[0].message.content);
+        return NextResponse.json(flashcards.flashcards);
+    } catch (error) {
+        console.error("Failed to generate flashcards:", error);
+        return new NextResponse("Internal Server Error", { status: 500 });
+    }
 }

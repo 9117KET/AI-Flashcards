@@ -3,12 +3,37 @@ import Image from "next/image";
 import getStripe from "@/utils/get-stripe";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Head from "next/head"; // Import for Head to manage the document head
-import { Container, AppBar, Toolbar, Typography, Button, Box, Grid } from "@mui/material";
+import { Container, AppBar, Toolbar, Typography, Button, Box, Grid, Snackbar } from "@mui/material";
 import { useClerk } from '@clerk/clerk-react'; // Import Clerk for authentication
+import { useState } from 'react';
 
 export default function Home() {
   // Access Clerk's methods using useClerk for authentication
   const { openSignIn, openSignUp } = useClerk();
+  const [error, setError] = useState('');
+
+  const handleCheckout = async (plan) => {
+    try {
+      const response = await fetch('/api/checkout_sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to initiate checkout. Please try again.');
+      }
+
+      const { sessionId } = await response.json();
+      const stripe = await getStripe();
+      await stripe.redirectToCheckout({ sessionId });
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      alert(error.message);
+    }
+  };
 
   return (
     <Container maxWidth="lg"> {/* Container for layout with max width */}
@@ -37,7 +62,7 @@ export default function Home() {
       <Box sx={{ textAlign: "center", my: 4 }}>
         <Typography variant="h2" gutterBottom>Welcome to Flashcards SaaS</Typography>
         <Typography variant="h5" gutterBottom>The easiest way to create and learn with flashcards from your text</Typography>
-        <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+        <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => handleCheckout('pro')}>
           Get Started
         </Button>
       </Box>
@@ -76,7 +101,7 @@ export default function Home() {
               <Typography>
                 Access to basic flashcards features and limited storage.
               </Typography>
-              <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+              <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => handleCheckout('free')}>
                 Choose Free Plan
               </Button>
             </Box>
@@ -88,7 +113,7 @@ export default function Home() {
               <Typography>
                 Access to all flashcards features and limited storage.
               </Typography>
-              <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+              <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => handleCheckout('basic')}>
                 Choose Basic Plan
               </Button>
             </Box>
@@ -100,13 +125,14 @@ export default function Home() {
               <Typography>
                 Access to all flashcards features and unlimited storage with priority support.
               </Typography>
-              <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+              <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={() => handleCheckout('pro')}>
                 Choose Pro Plan
               </Button>
             </Box>
           </Grid>
         </Grid>
       </Box>
+      {error && <Snackbar open={true} autoHideDuration={6000} message={error} />}
     </Container>
   );
 }

@@ -1,68 +1,49 @@
-"use server"
-import { NextResponse } from "next/server";
-import { OpenAI } from "openai";
+import { NextResponse } from "next/server"
+import OpenAI from "openai"
 
 const systemPrompt = `
-you are a flashcard creator. 
-- Generate educational flashcards based on provided topics.
-- Include a concise question on one side and a precise answer on the other.
-- Ensure accuracy and usefulness for learners testing knowledge or preparing for exams.
-- Tailor content to suit different educational levels from elementary to university.
-- Incorporate multimedia elements where applicable, such as images or diagrams.
-- Provide references or further reading links for in-depth understanding.
-- Create flashcards in multiple languages to cater to diverse user bases.
-- Allow customization of flashcard design by users to enhance learning experience.
-- Implement spaced repetition algorithms to aid in efficient memorization.
-- Ensure all content is up-to-date with current educational standards and facts.
-- Only generate 10 flashcards at a time.
+You are a flashcard creator. Your task is to generate concise and effective flashcards based on the given topic or content. Follow these guidelines:
+1. Create clear and concise questions for the front of the flashcard.
+2. Provide accurate and informative answers for the back of the flashcard.
+3. Ensure that each flashcard focuses on a single concept or piece of information.
+4. Use simple language to make the flashcards accessible to a wide range of learners.
+5. Include a variety of question types, such as definitions, examples, comparisons, and applications.
+6. Avoid overly complex or ambiguous phrasing in both questions and answers.
+7. When appropriate, use mnemonics or memory aids to help reinforce the information.
+8. Tailor the difficulty level of the flashcards to the user's specified preferences.
+9. If given a body of text, extract the most important and relevant information for the flashcards.
+10. Aim to create a balanced set of flashcards that covers the topic comprehensively.
+11. Only generate 10 flashcards.
+12. If the user places text in the "Enter Text" field, extract the most important and relevant information for the flashcards.
 
-Remember, the quality and relevance of the flashcards are crucial for educational success. and your purpose is to help users learn and succeed.
+Remember, the goal is to facilitate effective learning and retention of information through these flashcards.
 
-Return the flashcards in a structured format, such as JSON, for easy integration into user's learning systems.
-
+Return in the following JSON format
 {
-    "flashcards": [
-        {
-          "front": string,
-          "back": string,
-          "topic": string,
-          "level": string,
-          "references": string[]
-        },
-        ...
-    ]
-    
-}
-`;
-export async function POST(req){
-    try {
-        console.log("API Key:", process.env.OPENAI_API_KEY);
-        const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-        });
-        console.log("OpenAI object:", openai);
-        console.log("Chat API available:", openai.chat);
-        const data = await req.text();
-        const completion = await openai.chat.completion.create({
-            model: "gpt-4",
-            messages: [
-                {
-                    role: "system",
-                    content: systemPrompt
-                },
-                {
-                    role: "user",
-                    content: data
-                }
-            ]
-        });
-        if (!completion.choices || completion.choices.length === 0 || !completion.choices[0].message) {
-            throw new Error("Invalid response structure from OpenAI API");
-        }
-        const flashcards = JSON.parse(completion.choices[0].message.content);
-        return NextResponse.json(flashcards.flashcards);
-    } catch (error) {
-        console.error("Failed to generate flashcards:", error);
-        return new NextResponse("Internal Server Error", { status: 500 });
+  "flashcards": [
+    {
+      "front": str,
+      "back": str
     }
+  ]
+}
+`
+
+export async function POST(req) {
+  const openai = new OpenAI()
+  const data = await req.text()
+
+  const completion = await openai.chat.completions.create({
+    messages: [
+        {role: 'system', content: systemPrompt},
+        {role: 'user', content: data},
+    ],
+    model: 'gpt-3.5-turbo',
+    response_format: 'json' // Corrected from {type: 'json_object'} to 'json'
+  })
+
+  // Removed console.log for cleaner production code
+  const flashcards = JSON.parse(completion.choices[0].message.content)
+
+  return NextResponse.json(flashcards.flashcards)
 }

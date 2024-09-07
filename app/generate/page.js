@@ -2,8 +2,10 @@
 import { useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'; 
+import { db } from "@/firebase";
 import { Firestore, writeBatch, doc, collection, getDoc} from "firebase/firestore"
 import { Box, Container, Typography, Paper, TextField, Button, Grid, Card, CardActionArea, CardContent, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
+const punycode = require('punycode');
 
 export default function Generate() {
     const { user } = useUser();

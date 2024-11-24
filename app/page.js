@@ -4,6 +4,7 @@ import {SignedIn, SignedOut, UserButton, SignInButton} from "@clerk/nextjs"
 import {Container, AppBar, Toolbar, Typography, Button, Box, Grid} from "@mui/material"
 import Head from "next/head";
 import ErrorBoundary from './components/ErrorBoundary';
+import { useEffect } from 'react';
 
 // Define the Home component
 export default function Home() {

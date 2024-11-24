@@ -29,27 +29,36 @@ Return in the following JSON format:
 // POST function to handle the creation of a new flashcard
 export async function POST(request) {
     // Initialize the OpenAI client
-    const openai = OpenAI()
-    // Retrieve the request data as text
-    const data = await request.text()
+    const openai = new OpenAI();
 
-    // Create a completion using the OpenAI API with the system and user messages
-    const completion = await openai.chat.completion.create({
-        messages: [
-            {
-                role: "system",
-                content: systemPrompt
-            },
-            {
-                role: "user",
-                content: data
-            }
-        ],
-        model: "gpt-4o", // Specify the model to use
-        response_format: {type: "json_object"} // Specify the response format
-    })
-    // Parse the JSON response to extract the flashcard data
-    const flashcard = JSON.parse(completion.choices[0].message.content)
-    // Return the flashcard data as a JSON response
-    return NextResponse.json(flashcard.flashcard)
+    // Retrieve the request data as text
+    const data = await request.text();
+
+    try {
+        // Create a completion using the OpenAI API with the system and user messages
+        const completion = await openai.chat.completion.create({
+            messages: [
+                {
+                    role: "system",
+                    content: systemPrompt
+                },
+                {
+                    role: "user",
+                    content: data
+                }
+            ],
+            model: "gpt-4o", // Specify the model to use
+            response_format: "json" // Corrected response format
+        });
+
+        // Parse the JSON response to extract the flashcard data
+        const flashcard = JSON.parse(completion.choices[0].message.content);
+
+        // Return the flashcard data as a JSON response
+        return NextResponse.json(flashcard.flashcard);
+    } catch (error) {
+        // Handle errors gracefully
+        console.error("Error generating flashcard:", error);
+        return NextResponse.json({ error: "Failed to generate flashcard" }, { status: 500 });
+    }
 }

@@ -3,9 +3,17 @@ import getStripe from "@/utils/get-stripe";
 import {SignedIn, SignedOut, UserButton, SignInButton} from "@clerk/nextjs"
 import {Container, AppBar, Toolbar, Typography, Button, Box, Grid} from "@mui/material"
 import Head from "next/head";
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Define the Home component
 export default function Home() {
+  useEffect(() => {
+    console.log('Home component mounted');
+    return () => {
+      console.log('Home component unmounted');
+    };
+  }, []);
+
   return (
     <Container maxWidth="lg"> {/* Corrected prop name */}
       {/** Set up the HTML head with metadata and title **/}
@@ -22,15 +30,15 @@ export default function Home() {
           <Typography variant="h6" style={{flexGrow: 1}}>
             Flashcard SaaS
             </Typography>
-          {/** Show login and signup buttons when user is signed out **/}
+          {/** Temporarily remove login functionality
           <SignedOut>
             <Button color="inherit">Login</Button>
-            <Button color="inherit">Signup</Button> {/* Added Signup button */}
+            <Button color="inherit">Signup</Button>
           </SignedOut>
-          {/** Show user button when user is signed in **/}
           <SignedIn>
             <UserButton />
           </SignedIn>
+          **/}
         </Toolbar>
       </AppBar>
       <Box sx={{

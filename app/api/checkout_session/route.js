@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 // Initialize Stripe with the secret key from environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRETE_KEY)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 // Helper function to format amount for Stripe (converts to smallest currency unit)
-const formatAmountForStripe = (amount, currency) => {
+const formatAmountForStripe = (amount) => {
     return Math.round(amount * 100)
 }
 
@@ -22,7 +22,7 @@ export async function POST(request){
                     product_data: {
                         name: 'Pro-Subscription' // Product name
                     },
-                    unit_amount: formatAmountForStripe(10, 'usd'), // Price per unit
+                    unit_amount: formatAmountForStripe(10), // Price per unit
                     recurring: { // Subscription details
                         interval: 'month', // Billing interval
                         interval_count: 1, // Number of intervals (e.g., 1 month)
@@ -42,7 +42,10 @@ export async function POST(request){
     } catch (error) {
         // Log and return error details if the session creation fails
         console.error('Failed to create checkout session:', error);
-        return new Response(JSON.stringify({ error: 'Failed to create checkout session' }), {
+        return new Response(JSON.stringify({ 
+            error: 'Failed to create checkout session',
+            details: error.message
+        }), {
             status: 500,
             headers: {
                 'Content-Type': 'application/json',
